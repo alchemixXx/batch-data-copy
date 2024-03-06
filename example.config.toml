@@ -1,0 +1,43 @@
+[source]
+username = "source-user-name"
+password = "source-db-pass"
+host = "source-db-host"
+port = "source-db-port"
+database = "source-db-name"
+
+[target_db]
+username = "target-user-name"
+password = "target-db-pass"
+host = "target-db-host"
+port = "target-db-port"
+database = "target-db-name"
+
+[target_file]
+path="/home/user/path/batch_data_copy"
+
+[technology]
+category = "mysql"
+
+[business]
+study_id="1"
+area_id="1"
+lifecycle_id="1"
+job_id="1"
+
+[tables]
+data_source = [
+  "priorities",
+  "states",
+  "statuses",
+  "classes",
+  "categories",
+  "issue_types",
+  "issue_type_priorities",
+  "issue_type_categories",
+  "issue_type_property_types",
+  "issue_type_properties",
+  "issue_provider_system_mappings",
+]
+
+
+

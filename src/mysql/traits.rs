@@ -1,38 +1,10 @@
 use std::collections::HashMap;
+
 use mysql::{ from_value, prelude::Queryable, PooledConn, Row, Value };
-use crate::{
-    config::Config,
-    custom_error::{ CustomError, CustomResult },
-    traits::DataInsertQueryGeneratorTrait,
-};
 
-use super::db::{ get_connection };
+use crate::custom_error::{ CustomError, CustomResult };
 
-pub struct SimpleTablesQueryGenerator<'config> {
-    pub config: &'config Config,
-}
-
-impl<'config> DataInsertQueryGeneratorTrait for SimpleTablesQueryGenerator<'config> {
-    fn generate(&self) -> CustomResult<String> {
-        let mut result = String::new();
-        let mut connection = get_connection(&self.config.source)?;
-        for table in &self.config.tables.simple_tables {
-            let data = self.get_data(&mut connection, table)?;
-            let insert_query = self.generate_insert_query(&data, &table)?;
-            // result.push_str(insert_query.as_str());
-            println!("{:#?}", insert_query);
-            result.push_str(insert_query.as_str());
-        }
-        Ok(result)
-    }
-}
-
-// #[derive(Debug, Deserialize)]
-// pub struct TaskForCreate {
-//     pub Field: String,
-// }
-
-impl<'config> SimpleTablesQueryGenerator<'config> {
+pub trait TableQueryGenerator {
     fn get_columns(&self, connection: &mut PooledConn, table: &str) -> CustomResult<Vec<String>> {
         let column_query = format!("SHOW COLUMNS FROM {};", table);
         let columns_result = connection.query_map(column_query, |row: Row| {
@@ -54,11 +26,12 @@ impl<'config> SimpleTablesQueryGenerator<'config> {
     fn get_data(
         &self,
         connection: &mut PooledConn,
-        table: &str
+        table: &str,
+        query: &str
     ) -> CustomResult<Vec<HashMap<String, mysql::Value>>> {
         let columns = self.get_columns(connection, table)?;
         let data: Vec<HashMap<String, mysql::Value>> = connection
-            .query_map(format!("SELECT * FROM {} LIMIT 5;", table), |row: Row| {
+            .query_map(query, |row: Row| {
                 let mut map: HashMap<String, mysql::Value> = HashMap::new();
                 for (index, column_name) in columns.iter().enumerate() {
                     map.insert(column_name.clone(), row.get(index).unwrap());
@@ -90,8 +63,6 @@ impl<'config> SimpleTablesQueryGenerator<'config> {
                     .collect();
                 columns_populated = true;
             }
-            println!("{:#?}", columns);
-            println!("{:#?}", row);
             let mut values_as_str = String::new();
             for (index, column) in columns.iter().enumerate() {
                 let value = row.get(column.as_str()).unwrap();
@@ -119,8 +90,10 @@ impl<'config> SimpleTablesQueryGenerator<'config> {
             values_as_strings.join("), \n(")
         );
 
-        result.push_str(insert_query.as_str());
-        result.push_str("\n");
+        if columns.len() > 0 {
+            result.push_str(insert_query.as_str());
+            result.push_str("\n");
+        }
 
         Ok(result)
     }

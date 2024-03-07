@@ -5,7 +5,7 @@ use toml;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct TablesConfig {
-    pub simple_tables: Vec<String>,
+    pub batch_tables: Vec<String>,
     pub partitioned_tables: Vec<String>,
     pub double_partitioned_tables: Vec<String>,
     pub triple_partitioned_tables: Vec<String>,
@@ -45,7 +45,7 @@ pub struct TargetFile {
 pub struct Config {
     pub source: DbConfig,
     pub target_db: DbConfig,
-    pub target_file: TargetFile,
+    pub target_file: Option<TargetFile>,
     pub tables: TablesConfig,
     pub technology: DbTechnology,
     pub business: BatchConfig,

@@ -1,6 +1,6 @@
 use crate::{ custom_error::CustomResult, traits::DataInsertQueryGeneratorTrait };
 
-use super::simple_tables_query_generator::SimpleTablesQueryGenerator;
+use super::batch_tables_query_generator::BatchTablesQueryGenerator;
 
 pub struct InsertQueryGenerator<'config> {
     pub config: &'config crate::config::Config,
@@ -11,10 +11,10 @@ impl<'config> DataInsertQueryGeneratorTrait for InsertQueryGenerator<'config> {
         let mut result = String::new();
         println!("Generating insert statement for mysql");
 
-        let simple_tables_generator = SimpleTablesQueryGenerator { config: &self.config };
-        let simple_tables_sql = simple_tables_generator.generate()?;
+        let batch_tables_generator = BatchTablesQueryGenerator { config: &self.config };
+        let batch_tables_sql = batch_tables_generator.generate()?;
 
-        result.push_str(simple_tables_sql.as_str());
+        result.push_str(batch_tables_sql.as_str());
 
         println!("Generated insert statement for mysql");
         Ok(result)

@@ -1,0 +1,41 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'batch_data_copy'",
+      "cargo": {
+        "args": ["build", "--bin=batch_data_copy", "--package=batch_data_copy"],
+        "filter": {
+          "name": "batch_data_copy",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'batch_data_copy'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=batch_data_copy",
+          "--package=batch_data_copy"
+        ],
+        "filter": {
+          "name": "batch_data_copy",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

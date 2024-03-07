@@ -6,6 +6,8 @@ pub enum CustomError {
     DbTableStructure,
     DbConnection,
     DbTechnology,
+    FileCreationError,
+    FileDataInsertionError,
 }
 
 // impl From<T> for CustomErrorCode {

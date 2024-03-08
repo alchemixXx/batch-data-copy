@@ -1,4 +1,4 @@
-use mysql::{ prelude::{ Queryable, ToValue }, Error, PooledConn };
+use mysql::{ prelude::Queryable, Error, PooledConn };
 
 use crate::{ config::Config, custom_error::{ CustomError, CustomResult } };
 #[derive(Debug, mysql::prelude::FromRow)]
@@ -18,7 +18,7 @@ impl<'config> BatchTableSelectQueryProvider<'config> {
         connection: &mut PooledConn,
         table: &String,
         select_column: Option<String>
-    ) -> String {
+    ) -> CustomResult<String> {
         if table == "cb_batch_runs" {
             self.get_cb_batch_runs_select_query(table, select_column)
         } else if table.starts_with("cb_") {
@@ -32,7 +32,7 @@ impl<'config> BatchTableSelectQueryProvider<'config> {
         &self,
         table: &String,
         select_column: Option<String>
-    ) -> String {
+    ) -> CustomResult<String> {
         let selected = self.get_select_column(select_column);
 
         let mut query = format!(
@@ -48,7 +48,7 @@ impl<'config> BatchTableSelectQueryProvider<'config> {
             query.push_str(format!(" AND job_id = {}", job_id).as_str());
         }
 
-        query
+        Ok(query)
     }
 
     fn get_cb_select_query(
@@ -56,8 +56,8 @@ impl<'config> BatchTableSelectQueryProvider<'config> {
         connection: &mut PooledConn,
         table: &String,
         select_column: Option<String>
-    ) -> String {
-        let references = self.get_table_references(connection, table).unwrap();
+    ) -> CustomResult<String> {
+        let references = self.get_table_references(connection, table)?;
         let selected = self.get_select_column(select_column);
         let mut query = format!("SELECT {} FROM {}", selected, table);
         for (index, reference) in references.iter().enumerate() {
@@ -65,7 +65,7 @@ impl<'config> BatchTableSelectQueryProvider<'config> {
                 connection,
                 &reference.referenced_table_name,
                 Some(reference.referenced_column_name.clone())
-            );
+            )?;
             if index == 0 {
                 query.push_str(
                     format!("\nWHERE {} IN (\n{}\n)", reference.column_name, subquery).as_str()
@@ -77,11 +77,11 @@ impl<'config> BatchTableSelectQueryProvider<'config> {
             }
         }
 
-        query
+        Ok(query)
     }
 
-    fn get_general_select_query(&self, table: &String) -> String {
-        format!("SELECT * FROM {}", table)
+    fn get_general_select_query(&self, table: &String) -> CustomResult<String> {
+        Ok(format!("SELECT * FROM {}", table))
     }
 
     fn get_table_references(

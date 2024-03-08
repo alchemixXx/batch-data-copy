@@ -25,7 +25,7 @@ pub struct BatchConfig {
     pub study_id: i64,
     pub area_id: u8,
     pub lifecycle_id: u8,
-    pub subject_id: Option<u8>,
+    pub subject_id: Option<i64>,
     pub job_id: Option<i64>,
     pub limit: Option<i64>,
 }

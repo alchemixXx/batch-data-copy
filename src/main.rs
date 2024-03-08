@@ -8,7 +8,10 @@ mod mysql;
 use mysql::insert_query_generator::InsertQueryGenerator;
 use mysql::data_saver::DataSaver;
 
-use crate::{ custom_error::CustomError, traits::{ DataInsertQueryGeneratorTrait, DataSaverTrait } };
+use crate::{
+    custom_error::CustomError,
+    traits::{ TechnologyInsertGeneratorTrait, DataSaverTrait },
+};
 mod traits;
 
 fn main() -> CustomResult<()> {
@@ -23,7 +26,6 @@ fn main() -> CustomResult<()> {
     if config.technology.category == "mysql" {
         let generator = InsertQueryGenerator { config: &config };
         let sql_statements = generator.generate()?;
-        println!("SQL Statements: {}", sql_statements);
         let saver = DataSaver { config: &config };
         saver.save(&sql_statements)?;
         return Ok(());

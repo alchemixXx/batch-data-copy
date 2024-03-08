@@ -1,18 +1,14 @@
-use mysql::{ prelude::Queryable, Error, PooledConn };
+use mysql::PooledConn;
 
-use crate::{ config::Config, custom_error::{ CustomError, CustomResult } };
-#[derive(Debug, mysql::prelude::FromRow)]
-struct FkColumnUsage {
-    pub column_name: String,
-    pub referenced_table_name: String,
-    pub referenced_column_name: String,
-}
+use crate::{ config::Config, custom_error::CustomResult };
 
-pub struct BatchTableSelectQueryProvider<'config> {
+use super::traits::TableQueryGenerator;
+
+pub struct BatchTableQueryProvider<'config> {
     pub config: &'config Config,
 }
 
-impl<'config> BatchTableSelectQueryProvider<'config> {
+impl<'config> BatchTableQueryProvider<'config> {
     pub fn get_select_query(
         &self,
         connection: &mut PooledConn,
@@ -57,7 +53,11 @@ impl<'config> BatchTableSelectQueryProvider<'config> {
         table: &String,
         select_column: Option<String>
     ) -> CustomResult<String> {
-        let references = self.get_table_references(connection, table)?;
+        let references = self.get_table_references(
+            connection,
+            table,
+            &self.config.source.database
+        )?;
         let selected = self.get_select_column(select_column);
         let mut query = format!("SELECT {} FROM {}", selected, table);
         for (index, reference) in references.iter().enumerate() {
@@ -84,45 +84,6 @@ impl<'config> BatchTableSelectQueryProvider<'config> {
         Ok(format!("SELECT * FROM {}", table))
     }
 
-    fn get_table_references(
-        &self,
-        connection: &mut PooledConn,
-        table: &String
-    ) -> CustomResult<Vec<FkColumnUsage>> {
-        let query = format!(
-            r#"
-            SELECT
-                COLUMN_NAME,
-                REFERENCED_TABLE_NAME,
-                REFERENCED_COLUMN_NAME  
-            FROM
-                INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-            WHERE
-                TABLE_NAME = '{}' AND TABLE_SCHEMA = '{}'
-                AND REFERENCED_COLUMN_NAME IS NOT NULL
-                AND REFERENCED_TABLE_NAME IS NOT NULL
-            "#,
-            table,
-            self.config.source.database
-        );
-
-        let raw_results: Result<Vec<FkColumnUsage>, Error> = connection.query_map(
-            query,
-            |(column_name, referenced_table_name, referenced_column_name)| {
-                FkColumnUsage {
-                    column_name,
-                    referenced_table_name,
-                    referenced_column_name,
-                }
-            }
-        );
-
-        match raw_results {
-            Ok(results) => Ok(results),
-            Err(_) => Err(CustomError::DbTableStructure),
-        }
-    }
-
     fn get_select_column(&self, select_column: Option<String>) -> String {
         match select_column {
             Some(column) => column,
@@ -130,3 +91,5 @@ impl<'config> BatchTableSelectQueryProvider<'config> {
         }
     }
 }
+
+impl<'config> TableQueryGenerator for BatchTableQueryProvider<'config> {}

@@ -44,7 +44,7 @@ pub struct TargetFile {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub source: DbConfig,
-    pub target_db: DbConfig,
+    pub target_db: Option<DbConfig>,
     pub target_file: Option<TargetFile>,
     pub tables: TablesConfig,
     pub technology: DbTechnology,

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use mysql::{ from_value, prelude::Queryable, PooledConn, Row, Value };
+use mysql::{ from_value, prelude::Queryable, Error, PooledConn, Row, Value };
 
 use crate::custom_error::{ CustomError, CustomResult };
 
@@ -8,6 +8,13 @@ use crate::custom_error::{ CustomError, CustomResult };
 pub struct ColumnProps {
     pub name: String,
     pub data_type: String,
+}
+
+#[derive(Debug, mysql::prelude::FromRow)]
+pub struct FkColumnUsage {
+    pub column_name: String,
+    pub referenced_table_name: String,
+    pub referenced_column_name: String,
 }
 
 type ColumnData = HashMap<String, (ColumnProps, Value)>;
@@ -118,7 +125,6 @@ pub trait TableQueryGenerator {
         match value {
             mysql::Value::NULL => "NULL".to_string(),
             mysql::Value::Bytes(bytes) => {
-                println!("{:#?}", column_pros);
                 if column_pros.data_type.starts_with("binary") {
                     let hex_string: String = bytes
                         .iter()
@@ -134,12 +140,52 @@ pub trait TableQueryGenerator {
                 }
             }
             _ => {
-                let value = from_value::<String>(value.clone());
-                // if value.contains('\'') {
-                //     value = value.replace('\'', "\\'");
-                // }
+                let mut value = from_value::<String>(value.clone());
+                if value.contains('\'') {
+                    value = value.replace('\'', "\\'");
+                }
                 format!("'{}'", value)
             }
+        }
+    }
+
+    fn get_table_references(
+        &self,
+        connection: &mut PooledConn,
+        table: &String,
+        database: &String
+    ) -> CustomResult<Vec<FkColumnUsage>> {
+        let query = format!(
+            r#"
+            SELECT
+                COLUMN_NAME,
+                REFERENCED_TABLE_NAME,
+                REFERENCED_COLUMN_NAME  
+            FROM
+                INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+            WHERE
+                TABLE_NAME = '{}' AND TABLE_SCHEMA = '{}'
+                AND REFERENCED_COLUMN_NAME IS NOT NULL
+                AND REFERENCED_TABLE_NAME IS NOT NULL
+            "#,
+            table,
+            database
+        );
+
+        let raw_results: Result<Vec<FkColumnUsage>, Error> = connection.query_map(
+            query,
+            |(column_name, referenced_table_name, referenced_column_name)| {
+                FkColumnUsage {
+                    column_name,
+                    referenced_table_name,
+                    referenced_column_name,
+                }
+            }
+        );
+
+        match raw_results {
+            Ok(results) => Ok(results),
+            Err(_) => Err(CustomError::DbTableStructure),
         }
     }
 }

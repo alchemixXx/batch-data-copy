@@ -1,7 +1,7 @@
-use crate::{ config::Config, custom_error::CustomResult, traits::DataInsertQueryGeneratorTrait };
+use crate::{ config::Config, custom_error::CustomResult, traits::TablesInsertQueryGeneratorTrait };
 
 use super::{
-    batch_table_select_query_provider::BatchTableSelectQueryProvider,
+    batch_table_query_provider::BatchTableQueryProvider,
     db::get_connection,
     traits::TableQueryGenerator,
 };
@@ -10,24 +10,26 @@ pub struct BatchTablesQueryGenerator<'config> {
     pub config: &'config Config,
 }
 
-impl<'config> DataInsertQueryGeneratorTrait for BatchTablesQueryGenerator<'config> {
-    fn generate(&self) -> CustomResult<String> {
+impl<'config> TablesInsertQueryGeneratorTrait for BatchTablesQueryGenerator<'config> {
+    fn generate(&self) -> CustomResult<Option<String>> {
         let mut result = String::new();
         let mut connection = get_connection(&self.config.source)?;
-        let select_query_provider = BatchTableSelectQueryProvider { config: &self.config };
+        let provider = BatchTableQueryProvider { config: &self.config };
         for table in &self.config.tables.batch_tables {
-            let mut select_query = select_query_provider.get_select_query(
-                &mut connection,
-                table,
-                None
-            )?;
+            let mut select_query = provider.get_select_query(&mut connection, table, None)?;
             select_query.push_str(";");
-            let data = self.get_data(&mut connection, table, &select_query)?;
-            let insert_query = self.generate_insert_query(&data, &table)?;
+            print!("\nselect_query:\n");
+            print!("{}", select_query);
+            println!("\n");
+            let data = provider.get_data(&mut connection, table, &select_query)?;
+            let insert_query = provider.generate_insert_query(&data, &table)?;
             result.push_str(insert_query.as_str());
         }
-        Ok(result)
+
+        if result.is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(result))
+        }
     }
 }
-
-impl<'config> TableQueryGenerator for BatchTablesQueryGenerator<'config> {}

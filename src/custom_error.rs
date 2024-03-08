@@ -8,6 +8,8 @@ pub enum CustomError {
     DbTechnology,
     FileCreationError,
     FileDataInsertionError,
+    FolderCreationError,
+    NotImplemented,
 }
 
 // impl From<T> for CustomErrorCode {

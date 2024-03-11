@@ -36,7 +36,7 @@ pub struct DbTechnology {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct TargetFile {
+pub struct TargetPath {
     pub path: String,
 }
 
@@ -45,7 +45,7 @@ pub struct TargetFile {
 pub struct Config {
     pub source: DbConfig,
     pub target_db: Option<DbConfig>,
-    pub target_file: Option<TargetFile>,
+    pub target_path: TargetPath,
     pub tables: TablesConfig,
     pub technology: DbTechnology,
     pub business: BatchConfig,

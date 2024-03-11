@@ -1,6 +1,6 @@
 use std::{ fs::{ self, File }, io::Write };
 
-use crate::custom_error::{ CustomResult, CustomError };
+use crate::{ config::DbConfig, custom_error::{ CustomError, CustomResult } };
 
 pub struct InsertQueries {
     pub batch_tables: Option<String>,
@@ -18,7 +18,7 @@ pub trait TechnologyInsertGeneratorTrait {
 
 pub trait DataSaverTrait {
     fn save(&self, data: &InsertQueries) -> CustomResult<()>;
-    fn save_to_db(&self, data: &InsertQueries) -> CustomResult<()>;
+    fn save_to_db(&self, data: &InsertQueries, config: &DbConfig) -> CustomResult<()>;
     fn save_to_files(&self, data: &InsertQueries, folder_path: &String) -> CustomResult<()> {
         self.create_folder(folder_path)?;
         if let Some(batch_tables) = &data.batch_tables {

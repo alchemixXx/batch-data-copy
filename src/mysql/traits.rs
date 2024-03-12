@@ -8,6 +8,10 @@ use crate::custom_error::{ CustomError, CustomResult };
 pub struct ColumnProps {
     pub name: String,
     pub data_type: String,
+    pub is_nullable: String,
+    pub key: String,
+    pub default_value: Option<String>,
+    pub extra: String,
 }
 
 #[derive(Debug, mysql::prelude::FromRow)]
@@ -26,26 +30,27 @@ pub trait TableQueryGenerator {
         table: &str
     ) -> CustomResult<Vec<ColumnProps>> {
         let column_query = format!("SHOW COLUMNS FROM {};", table);
-        let columns_result = connection.query_map(column_query, |row: Row| {
-            let columns = row.columns_ref();
-            if columns[0].name_str() != "Field" {
-                panic!("Got wrong table definition structure");
-            }
-            let column_name: String = row.get(0).unwrap();
 
-            if columns[1].name_str() != "Type" {
-                panic!("Got wrong table definition structure");
-            }
-            let data_type: String = row.get(1).unwrap();
+        let raw_results = connection
+            .query_map(
+                column_query,
+                |(field_value, type_value, null_value, key_value, default_value, extra)| {
+                    let props = ColumnProps {
+                        name: field_value,
+                        data_type: type_value,
+                        is_nullable: null_value,
+                        key: key_value,
+                        default_value,
+                        extra,
+                    };
 
-            ColumnProps {
-                name: column_name,
-                data_type: data_type,
-            }
-        });
+                    props
+                }
+            )
+            .map_err(|err| CustomError::DbQueryExecution(err.to_string()));
 
-        match columns_result {
-            Ok(values) => Ok(values),
+        match raw_results {
+            Ok(results) => Ok(results),
             Err(_) => Err(CustomError::DbTableStructure),
         }
     }

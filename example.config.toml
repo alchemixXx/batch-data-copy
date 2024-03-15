@@ -19,25 +19,62 @@ path="/home/user/path/batch_data_copy"
 category = "mysql"
 
 [business]
-study_id="1"
-area_id="1"
-lifecycle_id="1"
-job_id="1"
+study_id=232565
+area_id=1
+lifecycle_id=3
+# job_id=244976
+# subject_id=271933
+
 
 [tables]
-data_source = [
-  "priorities",
-  "states",
-  "statuses",
-  "classes",
-  "categories",
-  "issue_types",
-  "issue_type_priorities",
-  "issue_type_categories",
-  "issue_type_property_types",
-  "issue_type_properties",
-  "issue_provider_system_mappings",
+batch_tables = [
+"cb_batch_runs",
+"cb_batch_runs_audit",
+"cb_batch_runs_blinding",
+"cb_batch_deletes",
+"cb_batch_runs_domains_configs",
+"cb_batch_runs_files",
+"cb_batch_runs_files_stats",
+"cb_batch_runs_files_subjects_stats",
+"cb_batch_runs_issues_loads",
+"cb_batch_runs_issues_stats",
+"cb_batch_runs_mt",
+"cb_batch_runs_rules_stats",
+"cb_batch_runs_stats",
+"cb_batch_runs_subjects",
+"cb_batch_runs_subjects_issues_stats",
+"cb_batch_runs_subjects_stats",
+"cb_batch_runs_subjects_steps",
+"cb_batch_runs_types",
+"cb_batch_runs_vr",
+"cb_bse_files",
+"cb_files",
+"cb_issues",
+"cb_jobs",
+"cb_study_domains",
+"cb_tasks",
+"cb_validations",
 ]
 
+partitioned_tables = []
+
+double_partitioned_tables = [
+"issues",
+"cb_study_data",
+"cb_domain_issues",
+"cb_study_data_issues",
+"comments",
+"issue_history",
+"study_data_comments",
+"study_data_review_history",
+"study_data_reviews",
+"study_data_statuses",
+"study_data_statuses_history",
+]
+
+triple_partitioned_tables = [
+"cb_custom_validation_response",
+"cb_study_data_custom_validation",
+]
 
 

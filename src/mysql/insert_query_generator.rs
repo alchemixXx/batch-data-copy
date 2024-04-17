@@ -27,6 +27,7 @@ impl<'config> TechnologyInsertGeneratorTrait for InsertQueryGenerator<'config> {
             batch_tables: batch_tables_sql,
             double_staged_tables: double_staged_tables_sql,
             triple_staged_tables: None,
+            redshift_tables: None,
         };
         Ok(result)
     }

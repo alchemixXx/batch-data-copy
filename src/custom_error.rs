@@ -12,11 +12,11 @@ pub enum CustomError {
     NotImplemented,
 }
 
-// impl From<T> for CustomErrorCode {
-//     fn from(e: T) -> Self {
-//         Self::DbQuery(e)
-//     }
-// }
+impl From<sqlx::error::Error> for CustomError {
+    fn from(e: sqlx::error::Error) -> Self {
+        Self::DbQueryExecution(e.to_string())
+    }
+}
 
 impl std::error::Error for CustomError {}
 impl core::fmt::Display for CustomError {

@@ -76,6 +76,10 @@ impl<'config> DoubleStagedTableQueryProvider<'config> {
             );
         }
 
+        if let Some(limit) = self.config.business.limit {
+            query.push_str(format!(" LIMIT {}", limit).as_str());
+        }
+
         Ok(query)
     }
 

@@ -9,6 +9,7 @@ pub struct TablesConfig {
     pub partitioned_tables: Vec<String>,
     pub double_partitioned_tables: Vec<String>,
     pub triple_partitioned_tables: Vec<String>,
+    pub redshift_tables: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -44,6 +45,7 @@ pub struct TargetPath {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub source: DbConfig,
+    pub redshift_db: DbConfig,
     pub target_db: Option<DbConfig>,
     pub target_path: TargetPath,
     pub tables: TablesConfig,

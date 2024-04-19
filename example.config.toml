@@ -5,6 +5,14 @@ host = "source-db-host"
 port = "source-db-port"
 database = "source-db-name"
 
+[redshift_db]
+username = "source-user-name"
+password = "source-db-pass"
+host = "source-db-host"
+port = "source-db-port"
+database = "source-db-name"
+
+
 [target_db]
 username = "target-user-name"
 password = "target-db-pass"
@@ -76,5 +84,7 @@ triple_partitioned_tables = [
 "cb_custom_validation_response",
 "cb_study_data_custom_validation",
 ]
+
+redshift_tables = []
 
 

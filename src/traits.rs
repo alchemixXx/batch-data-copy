@@ -6,6 +6,7 @@ pub struct InsertQueries {
     pub batch_tables: Option<String>,
     pub double_staged_tables: Option<String>,
     pub triple_staged_tables: Option<String>,
+    pub redshift_tables: Option<String>,
 }
 
 pub trait TablesInsertQueryGeneratorTrait {
@@ -34,6 +35,11 @@ pub trait DataSaverTrait {
         if let Some(triple_staged_tables) = &data.triple_staged_tables {
             let file_path = format!("{}/triple_staged_tables.sql", folder_path);
             self.save_to_file(triple_staged_tables, &file_path)?;
+        }
+
+        if let Some(redshift_tables) = &data.redshift_tables {
+            let file_path = format!("{}/redshift_tables.sql", folder_path);
+            self.save_to_file(redshift_tables, &file_path)?;
         }
 
         Ok(())

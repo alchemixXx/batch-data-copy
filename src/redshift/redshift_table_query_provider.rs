@@ -1,5 +1,5 @@
 use sqlx::{ Pool, Postgres };
-use crate::{ config::Config, custom_error::CustomResult };
+use crate::{ config::Config, custom_error::CustomResult, logger::LoggerTrait };
 
 use std::collections::HashMap;
 
@@ -10,6 +10,7 @@ pub struct RedshiftTableQueryProvider<'config> {
 }
 
 impl<'config> TableQueryGenerator for RedshiftTableQueryProvider<'config> {}
+impl<'config> LoggerTrait for RedshiftTableQueryProvider<'config> {}
 impl<'config> RedshiftTableQueryProvider<'config> {
     pub fn get_select_query(
         &self,
@@ -78,7 +79,8 @@ impl<'config> RedshiftTableQueryProvider<'config> {
         data: &Vec<HashMap<String, String>>,
         table: &String
     ) -> CustomResult<String> {
-        println!("Generating insert statements for table: {}", table);
+        let logger = self.get_logger();
+        logger.info(format!("Generating insert statements for table: {}", table).as_str());
         let mut result = String::new();
 
         let mut columns_populated = false;
@@ -122,7 +124,7 @@ impl<'config> RedshiftTableQueryProvider<'config> {
             result.push_str(insert_query.as_str());
             result.push_str("\n");
         }
-        println!("Generated insert statements for table: {}", table);
+        logger.info(format!("Generated insert statements for table: {}", table).as_str());
 
         Ok(result)
     }

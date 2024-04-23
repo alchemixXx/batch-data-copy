@@ -5,14 +5,15 @@ use crate::custom_error::{ CustomResult, CustomError };
 
 pub fn get_connection(db_config: &DbConfig) -> CustomResult<PooledConn> {
     let pool = get_connections_pool(db_config)?;
+    let logger = crate::logger::Logger::new();
 
     let connection = match pool.get_conn() {
         Ok(conn) => {
-            println!("Got connection from Pool");
+            logger.warn("Got connection from Pool");
             conn
         }
         Err(err) => {
-            println!("Can't get connection from Pool: {:#?}", err);
+            logger.error(format!("Can't get connection from Pool: {:#?}", err).as_str());
             return Err(CustomError::DbConnection);
         }
     };
@@ -21,16 +22,17 @@ pub fn get_connection(db_config: &DbConfig) -> CustomResult<PooledConn> {
 }
 
 pub fn get_connections_pool(db_config: &DbConfig) -> CustomResult<Pool> {
+    let logger = crate::logger::Logger::new();
     let url = get_url(db_config);
     let pool = Pool::new(url.as_str());
 
     match pool {
         Ok(pool) => {
-            println!("Created connection Pool for DB");
+            logger.info("Created connection Pool for DB");
             Ok(pool)
         }
         Err(err) => {
-            println!("Can't create connection Pool: {:#?}", err);
+            logger.error(format!("Can't create connection Pool: {:#?}", err).as_str());
             Err(CustomError::DbConnection)
         }
     }

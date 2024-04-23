@@ -5,16 +5,17 @@ use crate::config::DbConfig;
 use crate::custom_error::{ CustomResult, CustomError };
 
 pub async fn get_connections_pool(db_config: &DbConfig) -> CustomResult<Pool<Postgres>> {
+    let logger = crate::logger::Logger::new();
     let url = get_url(db_config);
     let pool = Pool::<Postgres>::connect(&url).await;
 
     match pool {
         Ok(pool) => {
-            println!("Created connection Pool for DB");
+            logger.warn("Created connection Pool for DB");
             Ok(pool)
         }
         Err(err) => {
-            println!("Can't create connection Pool: {:#?}", err);
+            logger.error(format!("Can't create connection Pool: {:#?}", err).as_str());
             Err(CustomError::DbConnection)
         }
     }

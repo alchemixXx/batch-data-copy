@@ -1,6 +1,7 @@
 use clap::Parser;
 mod config;
 mod cli;
+mod logger;
 use cli::CLi;
 use custom_error::CustomResult;
 mod custom_error;
@@ -19,13 +20,10 @@ mod traits;
 
 #[tokio::main]
 async fn main() -> CustomResult<()> {
-    println!("Reading cli args...");
     let cli_args = CLi::parse();
-    println!("CLI args: {:#?}", cli_args);
-
-    println!("Reading config file...");
     let config = config::read_config(&cli_args.path);
-    println!("Read config file");
+
+    logger::Logger::init(config.log.log_level);
 
     if config.tables.redshift_tables.len() > 0 {
         let generator = RedshiftInsertQueryGenerator { config: &config };

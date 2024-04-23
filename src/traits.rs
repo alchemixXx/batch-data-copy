@@ -66,12 +66,13 @@ pub trait DataSaverTrait {
 
     fn create_folder(&self, folder_path: &String) -> CustomResult<()> {
         let folder_creation_res = fs::create_dir_all(folder_path);
+        let logger = crate::logger::Logger::new();
 
         match folder_creation_res {
             Ok(_) => Ok(()),
             Err(err) => {
                 if err.kind() == std::io::ErrorKind::AlreadyExists {
-                    println!("Folder already exists");
+                    logger.warn("Folder already exists");
                     Ok(())
                 } else {
                     Err(CustomError::FolderCreationError)

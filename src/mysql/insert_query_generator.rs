@@ -1,5 +1,6 @@
 use crate::{
     custom_error::CustomResult,
+    logger::LoggerTrait,
     mysql::double_staged_tables_query_generator::DoubleStagedTablesQueryGenerator,
     traits::{ InsertQueries, TablesInsertQueryGeneratorTrait, TechnologyInsertGeneratorTrait },
 };
@@ -10,9 +11,11 @@ pub struct InsertQueryGenerator<'config> {
     pub config: &'config crate::config::Config,
 }
 
+impl<'config> LoggerTrait for InsertQueryGenerator<'config> {}
 impl<'config> TechnologyInsertGeneratorTrait for InsertQueryGenerator<'config> {
     fn generate(&self) -> CustomResult<InsertQueries> {
-        println!("Generating insert statement for mysql");
+        let logger = self.get_logger();
+        logger.info("Generating insert statement for mysql");
 
         let batch_tables_generator = BatchTablesQueryGenerator { config: &self.config };
         let batch_tables_sql = batch_tables_generator.generate()?;
@@ -22,7 +25,7 @@ impl<'config> TechnologyInsertGeneratorTrait for InsertQueryGenerator<'config> {
         };
         let double_staged_tables_sql = double_staged_tables_generator.generate()?;
 
-        println!("Generated insert statement for mysql");
+        logger.info("Generated insert statement for mysql");
         let result = InsertQueries {
             batch_tables: batch_tables_sql,
             double_staged_tables: double_staged_tables_sql,

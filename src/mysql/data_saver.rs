@@ -3,6 +3,7 @@ use mysql::{ prelude::Queryable, PooledConn };
 use crate::{
     config::{ Config, DbConfig },
     custom_error::{ CustomError, CustomResult },
+    logger::LoggerTrait,
     traits::{ DataSaverTrait, InsertQueries },
 };
 
@@ -12,6 +13,7 @@ pub struct DataSaver<'config> {
     pub config: &'config Config,
 }
 
+impl<'config> LoggerTrait for DataSaver<'config> {}
 impl<'config> DataSaverTrait for DataSaver<'config> {
     fn save(&self, data: &InsertQueries) -> CustomResult<()> {
         self.save_to_files(data, &self.config.target_path.path)?;
@@ -25,24 +27,25 @@ impl<'config> DataSaverTrait for DataSaver<'config> {
 
     fn save_to_db(&self, data: &InsertQueries, config: &DbConfig) -> CustomResult<()> {
         let mut connection = get_connection(config)?;
+        let logger = self.get_logger();
 
         self.exec_no_output_statement(&mut connection, &"SET FOREIGN_KEY_CHECKS = 0".to_string())?;
         if let Some(batch_sql) = &data.batch_tables {
-            println!("Executing batch tables");
+            logger.info("Executing batch tables");
             self.exec_no_output_statement(&mut connection, batch_sql)?;
-            println!("Batch tables executed");
+            logger.info("Batch tables executed");
         }
 
         if let Some(double_staged_sql) = &data.double_staged_tables {
-            println!("Executing double staged tables");
+            logger.info("Executing double staged tables");
             self.exec_no_output_statement(&mut connection, double_staged_sql)?;
-            println!("Double staged tables executed");
+            logger.info("Double staged tables executed");
         }
 
         if let Some(triple_staged_sql) = &data.triple_staged_tables {
-            println!("Executing triple staged tables");
+            logger.info("Executing triple staged tables");
             self.exec_no_output_statement(&mut connection, triple_staged_sql)?;
-            println!("Triple staged tables executed");
+            logger.info("Triple staged tables executed");
         }
 
         self.exec_no_output_statement(&mut connection, &"SET FOREIGN_KEY_CHECKS = 1".to_string())?;

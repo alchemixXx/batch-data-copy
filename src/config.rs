@@ -3,6 +3,8 @@ use serde_derive::Deserialize;
 use std::fs;
 use toml;
 
+use crate::logger::LogLevel;
+
 #[derive(Debug, Deserialize, Clone)]
 pub struct TablesConfig {
     pub batch_tables: Vec<String>,
@@ -41,6 +43,11 @@ pub struct TargetPath {
     pub path: String,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct LogsConfig {
+    pub log_level: LogLevel,
+}
+
 // Top level struct to hold the TOML data.
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
@@ -51,17 +58,29 @@ pub struct Config {
     pub tables: TablesConfig,
     pub technology: DbTechnology,
     pub business: BatchConfig,
+    pub log: LogsConfig,
 }
 
 pub fn read_config(path: &str) -> Config {
     println!("Reading config file: {}", path);
-    let contents = fs
-        ::read_to_string(path)
-        .expect(format!("Could not read file `{}`", path).as_str());
+    let content_result = fs::read_to_string(path);
 
-    let data: Config = toml
-        ::from_str(&contents)
-        .expect(format!("Unable to load data from `{}`", path).as_str());
+    let contents = match content_result {
+        Ok(contents) => contents,
+        Err(error) => {
+            println!("Error reading file: {}", error);
+            std::process::exit(1);
+        }
+    };
+
+    let data_result = toml::from_str(&contents);
+    let data: Config = match data_result {
+        Ok(data) => data,
+        Err(error) => {
+            println!("Error parsing file: {}", error);
+            std::process::exit(1);
+        }
+    };
     println!("Read config file: {}", path);
     println!("{:#?}", data);
 

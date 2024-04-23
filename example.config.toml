@@ -26,6 +26,9 @@ path="/home/user/path/batch_data_copy"
 [technology]
 category = "mysql"
 
+[log]
+log_level = "Warn"
+
 [business]
 study_id=232565
 area_id=1

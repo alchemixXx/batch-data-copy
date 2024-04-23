@@ -22,7 +22,6 @@ pub struct FkColumnUsage {
 }
 
 type ColumnData = HashMap<String, (ColumnProps, Value)>;
-
 pub trait TableQueryGenerator {
     fn get_columns(
         &self,
@@ -76,7 +75,8 @@ pub trait TableQueryGenerator {
     }
 
     fn generate_insert_query(&self, data: &Vec<ColumnData>, table: &str) -> CustomResult<String> {
-        println!("Generating insert statements for table: {}", table);
+        let logger = crate::logger::Logger::new();
+        logger.debug(format!("Generating insert statements for table: {}", table).as_str());
         let mut result = String::new();
 
         let mut columns_populated = false;
@@ -104,7 +104,7 @@ pub trait TableQueryGenerator {
 
             values_as_strings.push(values_as_str);
         }
-        println!("Generated insert statements for table: {}", table);
+        logger.debug(format!("Generated insert statements for table: {}", table).as_str());
 
         columns = columns
             .iter()
